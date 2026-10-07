@@ -24,34 +24,33 @@ flowchart TD
     A[📄 Raw Execution Log] -->|Unstructured Traces & Corrupt Lines| B[⚙️ Tier 1: Ingest & Parse]
     
     subgraph Tier1 [Tier 1 Processing]
-        B -->|Regex Parsing| B1[Extract Metadata]
-        B -->|Fallback Handler| B2[Tag Malformed as CORRUPT]
+        B --> B1[Extract Metadata via Regex]
+        B --> B2[Tag Malformed as CORRUPT]
     end
 
     B1 & B2 --> C[🧹 Tier 2: Clean & Transform]
 
     subgraph Tier2 [Tier 2 Feature Engineering]
-        C --> C1[Vector Differential Timing\ndelta_seconds]
-        C --> C2[Latency Extraction\nexecution_ms]
-        C --> C3[Text Sanitization\nHex & Num Masking]
+        C --> C1[Vector Differential Timing]
+        C --> C2[Execution Duration Extraction]
+        C --> C3[Text Sanitization & Masking]
     end
 
     C1 & C2 & C3 --> D[🤖 Tier 3: ML Anomaly Detection]
 
     subgraph Tier3 [Tier 3 Machine Learning]
-        D --> D1[TF-IDF Text Vectorizer\n50 Features]
-        D --> D2[StandardScaler Matrix\nLatency Metrics]
-        D1 & D2 --> D3[DBSCAN Density Clustering\nCluster -1 = Noise/Outlier]
+        D --> D1[TF-IDF Text Vectorizer]
+        D --> D2[StandardScaler Matrix]
+        D1 & D2 --> D3[DBSCAN Clustering]
     end
 
     D3 --> E[📊 Automated Reporting]
     E --> F[📁 anomalies_report.csv]
     E --> G[📁 diagnostics_summary.json]
 
-    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
-    style D3 fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
-    style E fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#fff
-    ...
+    style A fill:#ffffff,stroke:#333,stroke-width:2px,color:#000000
+    style D3 fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#ffffff
+    style E fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#ffffff
 ```
 ---
 
