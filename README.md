@@ -19,7 +19,40 @@ This repository provides an automated **3-Tier Data Hygiene Pipeline** that inge
 ---
 
 ## 🏗️ Architecture & 3-Tier Data Flow
-┌─────────────────────────┐│     Raw Execution Log   │  Unstructured execution traces & malformed lines└────────────┬────────────┘│▼┌─────────────────────────┐│ Tier 1: Ingest & Parse  │  Regex parsing + Graceful fallback for corrupt lines└────────────┬────────────┘│▼┌─────────────────────────┐│ Tier 2: Clean & Transform│ Timestamps, vector differential timing (delta_sec),└────────────┬────────────┘  metric regex extraction, text sanitization│▼┌─────────────────────────┐│ Tier 3: ML Anomaly Model │  TF-IDF (50 features) + Standardized Latency Matrix└────────────┬────────────┘  ──> DBSCAN Clustering (Cluster -1 = Noise/Outlier)│▼┌─────────────────────────┐│   Automated Reporting   │  Exports: anomalies_report.csv & diagnostics_summary.json└─────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            📄 Raw Execution Log                             │
+│             (Unstructured hardware traces & malformed entry streams)        │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        ⚙️ Tier 1: Ingest & Parse                             │
+│  • Custom Regex Field Extraction (Timestamp, Severity, Module, Message)      │
+│  • Graceful Fallback Handler (Tags corrupted lines without crashing)          │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     🧹 Tier 2: Clean & Transform                            │
+│  • Vectorized Differential Timing (dt.total_seconds with median imputation)  │
+│  • Metric Regex Extraction (time/duration/latency in ms)                     │
+│  • Text Sanitization & Masking (0x7FFA4B → <NUM>)                            │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    🤖 Tier 3: ML Anomaly Pipeline                           │
+│  • Feature Matrix: TF-IDF Text Vectorizer (50 max) + Scaled Latency Metrics │
+│  • Density Clustering: DBSCAN (eps=0.5, min_samples=2)                       │
+│  • Anomaly Classification: Cluster -1 Noise + High-Severity Overrides       │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       📊 Automated Reporting                                │
+│  • CSV Output: log_exports/anomalies_report_<timestamp>.csv                │
+│  • JSON Payload: log_exports/diagnostics_summary_<timestamp>.json           │
+└─────────────────────────────────────────────────────────────────────────────┘
 ---
 
 ## 🔑 Key Features
