@@ -19,25 +19,40 @@ This repository provides an automated **3-Tier Data Hygiene Pipeline** that inge
 ---
 
 ## 🏗️ Architecture & 3-Tier Data Flow
-[ Raw Log Trace ]
-         │
-         ▼
-┌─────────────────┐
-│ Tier 1: Ingest  │ ──► Regex Pattern Matching & Corrupt Fallback
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Tier 2: Clean   │ ──► Delta Timing (.diff()) & Metric Extraction
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Tier 3: ML Model│ ──► TF-IDF + Latency Matrix ──► DBSCAN (Cluster -1)
-└────────┬────────┘
-         │
-         ▼
-[ CSV / JSON Reports ]
+```mermaid
+flowchart TD
+    A[📄 Raw Execution Log] -->|Unstructured Traces & Corrupt Lines| B[⚙️ Tier 1: Ingest & Parse]
+    
+    subgraph Tier1 [Tier 1 Processing]
+        B -->|Regex Parsing| B1[Extract Metadata]
+        B -->|Fallback Handler| B2[Tag Malformed as CORRUPT]
+    end
+
+    B1 & B2 --> C[🧹 Tier 2: Clean & Transform]
+
+    subgraph Tier2 [Tier 2 Feature Engineering]
+        C --> C1[Vector Differential Timing\ndelta_seconds]
+        C --> C2[Latency Extraction\nexecution_ms]
+        C --> C3[Text Sanitization\nHex & Num Masking]
+    end
+
+    C1 & C2 & C3 --> D[🤖 Tier 3: ML Anomaly Detection]
+
+    subgraph Tier3 [Tier 3 Machine Learning]
+        D --> D1[TF-IDF Text Vectorizer\n50 Features]
+        D --> D2[StandardScaler Matrix\nLatency Metrics]
+        D1 & D2 --> D3[DBSCAN Density Clustering\nCluster -1 = Noise/Outlier]
+    end
+
+    D3 --> E[📊 Automated Reporting]
+    E --> F[📁 anomalies_report.csv]
+    E --> G[📁 diagnostics_summary.json]
+
+    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style D3 fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#fff
+    ...
+```
 ---
 
 ## 🔑 Key Features
